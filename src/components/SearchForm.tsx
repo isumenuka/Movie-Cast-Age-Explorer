@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, Search, Star, Calendar } from 'lucide-react';
+import { Loader2, Search, Star, Calendar, Filter } from 'lucide-react';
 import { searchMovies } from '../api';
 import type { SearchResult, SelectedMovie } from '../types';
 
@@ -23,6 +23,8 @@ export function SearchForm({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [yearFilter, setYearFilter] = useState<string>('');
+  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
 
   useEffect(() => {
     const searchTimeout = setTimeout(async () => {
@@ -46,6 +48,18 @@ export function SearchForm({
     return () => clearTimeout(searchTimeout);
   }, [movieName]);
 
+  useEffect(() => {
+    if (yearFilter) {
+      const filtered = searchResults.filter(result => {
+        const year = (result.release_date || result.first_air_date || '').split('-')[0];
+        return year === yearFilter;
+      });
+      setFilteredResults(filtered);
+    } else {
+      setFilteredResults(searchResults);
+    }
+  }, [searchResults, yearFilter]);
+
   const handleResultClick = (result: SearchResult) => {
     const selectedMovie: SelectedMovie = {
       id: result.id,
@@ -61,6 +75,7 @@ export function SearchForm({
     setMovieName(selectedMovie.title);
     onMovieSelect(selectedMovie);
     setShowResults(false);
+    setYearFilter('');
   };
 
   const getYear = (movie: SelectedMovie) => {
@@ -71,28 +86,61 @@ export function SearchForm({
 
   return (
     <form onSubmit={onSubmit} className="max-w-xl mx-auto relative">
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Movie/TV Show Name
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={movieName}
-            onChange={(e) => {
-              setMovieName(e.target.value);
-              if (selectedMovie) {
-                onMovieSelect(null);
-              }
-            }}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border pl-10"
-            placeholder="Search movies or TV shows..."
-          />
-          <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-          {searchLoading && (
-            <Loader2 className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 animate-spin" />
-          )}
+      <div className="mb-4 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Movie/TV Show Name
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={movieName}
+              onChange={(e) => {
+                setMovieName(e.target.value);
+                if (selectedMovie) {
+                  onMovieSelect(null);
+                }
+              }}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border pl-10"
+              placeholder="Search movies or TV shows..."
+            />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            {searchLoading && (
+              <Loader2 className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 animate-spin" />
+            )}
+          </div>
         </div>
+
+        {showResults && searchResults.length > 0 && !selectedMovie && (
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Filter by Year
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  placeholder="Enter year (e.g., 1990)"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border pl-10"
+                  min="1900"
+                  max={new Date().getFullYear()}
+                />
+                <Filter className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() => setYearFilter('')}
+                className="px-4 py-3 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {selectedMovie && (
@@ -143,41 +191,47 @@ export function SearchForm({
         </div>
       )}
 
-      {showResults && searchResults.length > 0 && !selectedMovie && (
+      {showResults && !selectedMovie && (
         <div className="absolute z-10 w-full bg-white rounded-md shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
-          {searchResults.map((result) => (
-            <button
-              key={result.id}
-              type="button"
-              onClick={() => handleResultClick(result)}
-              className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-start space-x-3"
-            >
-              {result.poster_path ? (
-                <img
-                  src={result.poster_path}
-                  alt={result.title}
-                  className="w-12 h-18 object-cover rounded"
-                />
-              ) : (
-                <div className="w-12 h-18 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-gray-400 text-xs">No image</span>
-                </div>
-              )}
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-gray-900">{result.title || result.name}</h4>
-                  <div className="flex items-center text-yellow-500">
-                    <Star className="w-3 h-3 fill-current" />
-                    <span className="text-xs ml-1">{result.vote_average.toFixed(1)}</span>
+          {filteredResults.length > 0 ? (
+            filteredResults.map((result) => (
+              <button
+                key={result.id}
+                type="button"
+                onClick={() => handleResultClick(result)}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-start space-x-3"
+              >
+                {result.poster_path ? (
+                  <img
+                    src={result.poster_path}
+                    alt={result.title}
+                    className="w-12 h-18 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-12 h-18 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-gray-400 text-xs">No image</span>
                   </div>
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900">{result.title || result.name}</h4>
+                    <div className="flex items-center text-yellow-500">
+                      <Star className="w-3 h-3 fill-current" />
+                      <span className="text-xs ml-1">{result.vote_average.toFixed(1)}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    {result.media_type.toUpperCase()} • {result.release_date?.split('-')[0] || result.first_air_date?.split('-')[0] || 'N/A'}
+                  </p>
+                  <p className="text-xs text-gray-500 line-clamp-2">{result.overview}</p>
                 </div>
-                <p className="text-sm text-gray-500">
-                  {result.media_type.toUpperCase()} • {result.release_date?.split('-')[0] || result.first_air_date?.split('-')[0] || 'N/A'}
-                </p>
-                <p className="text-xs text-gray-500 line-clamp-2">{result.overview}</p>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))
+          ) : (
+            <div className="p-4 text-center text-gray-500">
+              {yearFilter ? `No results found for year ${yearFilter}` : 'No results found'}
+            </div>
+          )}
         </div>
       )}
 
