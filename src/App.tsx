@@ -4,6 +4,7 @@ import { ActorInfo, SelectedMovie } from './types';
 import { fetchMovieCast } from './api';
 import { SearchForm } from './components/SearchForm';
 import { ActorCard } from './components/ActorCard';
+import { Footer } from './components/Footer';
 
 function App() {
   const [movieName, setMovieName] = useState('');
@@ -54,80 +55,85 @@ function App() {
   const otherActors = sortedActors.filter(actor => actor.gender !== 1 || actor.known_for_department !== 'Acting');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-800 flex items-center justify-center gap-3">
-            <Film className="w-10 h-10 text-indigo-600" />
-            Movie Cast Age Explorer
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Enter a movie or TV show name to discover the cast's ages
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-xl p-6 mb-8">
-          <SearchForm
-            movieName={movieName}
-            setMovieName={setMovieName}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            onMovieSelect={setSelectedMovie}
-            selectedMovie={selectedMovie}
-          />
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
-
-        {actors.length > 0 && (
-          <>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">Cast Information</h2>
-              <button
-                onClick={() => setSortBy(sortBy === 'popularity' ? 'age' : 'popularity')}
-                className="flex items-center gap-2 px-4 py-2 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors"
-              >
-                <SortAsc className="w-4 h-4" />
-                Sort by {sortBy === 'popularity' ? 'Age' : 'Popularity'}
-              </button>
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-1 bg-gradient-to-br from-indigo-50 to-purple-50">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8 sm:mb-10">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+                <Film className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600" />
+                <span>Movie Cast Age Explorer</span>
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-2">
+                Enter a movie or TV show name to discover the cast's ages
+              </p>
             </div>
 
-            {femaleActors.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Featured Actresses</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {femaleActors.map((actor, index) => (
-                    <ActorCard
-                      key={`${actor.name}-${index}`}
-                      actor={actor}
-                      currentYear={currentYear}
-                    />
-                  ))}
-                </div>
+            <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 mb-6 sm:mb-8">
+              <SearchForm
+                movieName={movieName}
+                setMovieName={setMovieName}
+                onSubmit={handleSubmit}
+                isLoading={isLoading}
+                onMovieSelect={setSelectedMovie}
+                selectedMovie={selectedMovie}
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 sm:mb-8">
+                <p className="text-red-700 text-sm sm:text-base">{error}</p>
               </div>
             )}
 
-            {otherActors.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Other Cast Members</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {otherActors.map((actor, index) => (
-                    <ActorCard
-                      key={`${actor.name}-${index}`}
-                      actor={actor}
-                      currentYear={currentYear}
-                    />
-                  ))}
+            {actors.length > 0 && (
+              <>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Cast Information</h2>
+                  <button
+                    onClick={() => setSortBy(sortBy === 'popularity' ? 'age' : 'popularity')}
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                  >
+                    <SortAsc className="w-4 h-4" />
+                    Sort by {sortBy === 'popularity' ? 'Age' : 'Popularity'}
+                  </button>
                 </div>
-              </div>
+
+                {femaleActors.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Featured Actresses</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {femaleActors.map((actor, index) => (
+                        <ActorCard
+                          key={`${actor.name}-${index}`}
+                          actor={actor}
+                          currentYear={currentYear}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {otherActors.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Other Cast Members</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {otherActors.map((actor, index) => (
+                        <ActorCard
+                          key={`${actor.name}-${index}`}
+                          actor={actor}
+                          currentYear={currentYear}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

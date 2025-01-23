@@ -37,7 +37,7 @@ Current age: ${calculateAge(actor.birthYear, currentYear)}`;
     <div className={`bg-white rounded-lg shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-200 ${
       isPopular && isFemale && isActor ? 'ring-2 ring-pink-400' : ''
     }`}>
-      <div className="aspect-square relative">
+      <div className="aspect-[3/4] relative">
         <img
           src={actor.imageUrl}
           alt={actor.name}
@@ -49,26 +49,26 @@ Current age: ${calculateAge(actor.birthYear, currentYear)}`;
           }}
         />
         {isPopular && (
-          <div className="absolute top-2 right-2 bg-pink-500 text-white px-2 py-1 rounded-full text-sm flex items-center gap-1">
-            <Star className="w-4 h-4" />
+          <div className="absolute top-2 right-2 bg-pink-500 text-white px-2 py-1 rounded-full text-xs sm:text-sm flex items-center gap-1">
+            <Star className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Popular</span>
           </div>
         )}
       </div>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 line-clamp-2">
             {actor.name}
           </h3>
           {actor.popularity > 0 && (
-            <div className="flex items-center text-sm text-gray-600">
-              <TrendingUp className="w-4 h-4 mr-1" />
+            <div className="flex items-center text-xs sm:text-sm text-gray-600 ml-2">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               {actor.popularity.toFixed(1)}
             </div>
           )}
         </div>
-        <p className="text-gray-600 mb-3 italic">{actor.role}</p>
-        <div className="space-y-1 text-gray-600">
+        <p className="text-xs sm:text-sm text-gray-600 mb-3 italic line-clamp-2">{actor.role}</p>
+        <div className="space-y-1 text-xs sm:text-sm text-gray-600">
           <p>
             Age in {actor.movieYear}:{' '}
             <span className="font-semibold text-indigo-600">
@@ -84,16 +84,16 @@ Current age: ${calculateAge(actor.birthYear, currentYear)}`;
         </div>
         <button
           onClick={handleCopyAges}
-          className="mt-4 flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
+          className="mt-3 sm:mt-4 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           {isCopied ? (
             <>
-              <Check className="w-4 h-4" />
+              <Check className="w-3 h-3 sm:w-4 sm:h-4" />
               Copied!
             </>
           ) : (
             <>
-              <Copy className="w-4 h-4" />
+              <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
               Copy Ages
             </>
           )}
