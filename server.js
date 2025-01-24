@@ -98,6 +98,7 @@ app.get('/api/search', async (req, res) => {
 });
 
 async function getMovieCredits(movieId, mediaType) {
+  // Fetch all cast members without limiting
   const response = await fetch(
     `${TMDB_API_BASE_URL}/${mediaType}/${movieId}/credits?api_key=${TMDB_API_KEY}`
   );
@@ -136,10 +137,9 @@ app.post('/api/movie-cast', async (req, res) => {
     }
 
     const credits = await getMovieCredits(id, mediaType);
-    const mainCast = credits.slice(0, 15);
-
+    // Process all cast members instead of slicing
     const castDetails = await Promise.all(
-      mainCast.map(async (actor) => {
+      credits.map(async (actor) => {
         try {
           const personDetails = await getPersonDetails(actor.id);
           return {
