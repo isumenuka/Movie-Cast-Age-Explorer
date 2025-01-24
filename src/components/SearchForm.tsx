@@ -26,9 +26,10 @@ export function SearchForm({
   const [searchError, setSearchError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('');
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const searchTimeout = setTimeout(async () => {
+    const handleSearch = async () => {
       if (movieName.trim().length >= 2) {
         setSearchLoading(true);
         setSearchError('');
@@ -37,7 +38,7 @@ export function SearchForm({
           setSearchResults(data.results);
           setShowResults(true);
         } catch (error) {
-          setSearchError('Failed to search movies. Please try again.');
+          setSearchError(error instanceof Error ? error.message : 'Failed to search movies. Please try again.');
           setSearchResults([]);
         } finally {
           setSearchLoading(false);
@@ -47,9 +48,23 @@ export function SearchForm({
         setShowResults(false);
         setSearchError('');
       }
-    }, 300);
+    };
 
-    return () => clearTimeout(searchTimeout);
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Set new timeout
+    const timeout = setTimeout(handleSearch, 300);
+    setSearchTimeout(timeout);
+
+    // Cleanup
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
   }, [movieName]);
 
   useEffect(() => {
@@ -108,6 +123,7 @@ export function SearchForm({
               }}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border pl-10"
               placeholder="Search movies or TV shows..."
+              minLength={2}
             />
             <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
             {searchLoading && (
@@ -116,6 +132,9 @@ export function SearchForm({
           </div>
           {searchError && (
             <p className="mt-2 text-sm text-red-600">{searchError}</p>
+          )}
+          {movieName.trim().length === 1 && (
+            <p className="mt-2 text-sm text-gray-500">Please enter at least 2 characters</p>
           )}
         </div>
 
