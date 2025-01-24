@@ -23,6 +23,7 @@ export function SearchForm({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('');
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
 
@@ -30,18 +31,21 @@ export function SearchForm({
     const searchTimeout = setTimeout(async () => {
       if (movieName.trim().length >= 2) {
         setSearchLoading(true);
+        setSearchError('');
         try {
           const data = await searchMovies(movieName);
           setSearchResults(data.results);
           setShowResults(true);
         } catch (error) {
-          console.error('Search error:', error);
+          setSearchError('Failed to search movies. Please try again.');
+          setSearchResults([]);
         } finally {
           setSearchLoading(false);
         }
       } else {
         setSearchResults([]);
         setShowResults(false);
+        setSearchError('');
       }
     }, 300);
 
@@ -76,6 +80,7 @@ export function SearchForm({
     onMovieSelect(selectedMovie);
     setShowResults(false);
     setYearFilter('');
+    setSearchError('');
   };
 
   const getYear = (movie: SelectedMovie) => {
@@ -109,6 +114,9 @@ export function SearchForm({
               <Loader2 className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 animate-spin" />
             )}
           </div>
+          {searchError && (
+            <p className="mt-2 text-sm text-red-600">{searchError}</p>
+          )}
         </div>
 
         {showResults && searchResults.length > 0 && !selectedMovie && (
