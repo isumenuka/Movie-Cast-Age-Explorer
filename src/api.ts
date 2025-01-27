@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = '/api';
 
 export async function searchMovies(query: string, page: number = 1) {
   try {
@@ -37,7 +37,7 @@ export async function fetchMovieCast({ title, year, id, mediaType }: MovieCastPa
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         movieName: title,
         year,
         id,
