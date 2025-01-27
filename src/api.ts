@@ -1,6 +1,4 @@
-const API_BASE_URL = import.meta.env.PROD 
-  ? '/api'  // In production, use relative path
-  : 'http://localhost:3000/api'; // In development, use localhost
+const API_BASE_URL = 'http://localhost:3000/api';
 
 export async function searchMovies(query: string, page: number = 1) {
   try {
