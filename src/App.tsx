@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Film, SortAsc } from 'lucide-react';
+import { Film } from 'lucide-react';
 import { ActorInfo, SelectedMovie } from './types';
 import { fetchMovieCast } from './api';
 import { SearchForm } from './components/SearchForm';
-import { ActorCard } from './components/ActorCard';
+import { AllCastMembers } from './components/AllCastMembers';
 import { Footer } from './components/Footer';
 
 function App() {
@@ -12,9 +12,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [actors, setActors] = useState<ActorInfo[]>([]);
   const [error, setError] = useState('');
-  const [sortBy, setSortBy] = useState<'popularity' | 'age'>('popularity');
   const currentYear = new Date().getFullYear();
-  const [displayCount, setDisplayCount] = useState(15); // Initial display count
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +24,6 @@ function App() {
     setIsLoading(true);
     setError('');
     setActors([]);
-    setDisplayCount(15); // Reset display count on new search
 
     try {
       const movieYear = selectedMovie.release_date?.split('-')[0] || 
@@ -46,25 +43,11 @@ function App() {
     }
   };
 
-  const sortedActors = [...actors].sort((a, b) => {
-    if (sortBy === 'popularity') {
-      return b.popularity - a.popularity;
-    }
-    return (b.birthYear || 0) - (a.birthYear || 0);
-  });
-
-  const femaleActors = sortedActors.filter(actor => actor.gender === 1 && actor.known_for_department === 'Acting');
-  const otherActors = sortedActors.filter(actor => actor.gender !== 1 || actor.known_for_department !== 'Acting');
-
-  const loadMore = () => {
-    setDisplayCount(prev => prev + 15);
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex-1 bg-gradient-to-br from-indigo-50 to-purple-50">
         <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="text-center mb-8 sm:mb-10">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
                 <Film className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600" />
@@ -93,74 +76,7 @@ function App() {
             )}
 
             {actors.length > 0 && (
-              <>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
-                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                    Cast Information ({actors.length} members)
-                  </h2>
-                  <button
-                    onClick={() => setSortBy(sortBy === 'popularity' ? 'age' : 'popularity')}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors text-sm sm:text-base"
-                  >
-                    <SortAsc className="w-4 h-4" />
-                    Sort by {sortBy === 'popularity' ? 'Age' : 'Popularity'}
-                  </button>
-                </div>
-
-                {femaleActors.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-                      Featured Actresses ({femaleActors.length})
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      {femaleActors.slice(0, displayCount).map((actor, index) => (
-                        <ActorCard
-                          key={`${actor.name}-${index}`}
-                          actor={actor}
-                          currentYear={currentYear}
-                        />
-                      ))}
-                    </div>
-                    {femaleActors.length > displayCount && (
-                      <div className="text-center mt-6">
-                        <button
-                          onClick={loadMore}
-                          className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                        >
-                          Load More Actresses
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {otherActors.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-                      Other Cast Members ({otherActors.length})
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      {otherActors.slice(0, displayCount).map((actor, index) => (
-                        <ActorCard
-                          key={`${actor.name}-${index}`}
-                          actor={actor}
-                          currentYear={currentYear}
-                        />
-                      ))}
-                    </div>
-                    {otherActors.length > displayCount && (
-                      <div className="text-center mt-6">
-                        <button
-                          onClick={loadMore}
-                          className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                        >
-                          Load More Cast Members
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
+              <AllCastMembers actors={actors} currentYear={currentYear} />
             )}
           </div>
         </div>
