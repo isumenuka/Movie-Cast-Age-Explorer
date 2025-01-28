@@ -1,4 +1,20 @@
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.PROD 
+  ? '/api'  // In production, use relative path
+  : 'http://localhost:3000/api'; // In development, use localhost
+
+async function handleResponse(response: Response) {
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    throw new Error('Invalid response from server. Please try again.');
+  }
+  
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'An error occurred. Please try again.');
+  }
+  
+  return data;
+}
 
 export async function searchMovies(query: string, page: number = 1) {
   try {
@@ -10,16 +26,10 @@ export async function searchMovies(query: string, page: number = 1) {
       `${API_BASE_URL}/search?query=${encodeURIComponent(query.trim())}&page=${page}`
     );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to search movies');
-    }
-
-    return data;
+    return handleResponse(response);
   } catch (error) {
     console.error('Search error:', error);
-    throw error;
+    throw error instanceof Error ? error : new Error('Failed to search movies');
   }
 }
 
@@ -37,7 +47,7 @@ export async function fetchMovieCast({ title, year, id, mediaType }: MovieCastPa
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
+      body: JSON.stringify({ 
         movieName: title,
         year,
         id,
@@ -45,15 +55,9 @@ export async function fetchMovieCast({ title, year, id, mediaType }: MovieCastPa
       }),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch cast information');
-    }
-
-    return data;
+    return handleResponse(response);
   } catch (error) {
     console.error('Cast fetch error:', error);
-    throw error;
+    throw error instanceof Error ? error : new Error('Failed to fetch cast information');
   }
 }
