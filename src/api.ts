@@ -1,63 +1,63 @@
-const API_BASE_URL = import.meta.env.PROD 
-  ? '/api'  // In production, use relative path
-  : 'http://localhost:3000/api'; // In development, use localhost
+import { tmdbApi } from './services/tmdb';
+import type { SearchResponse, MovieCastParams, ActorInfo } from './types';
 
-async function handleResponse(response: Response) {
-  const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    throw new Error('Invalid response from server. Please try again.');
-  }
-  
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'An error occurred. Please try again.');
-  }
-  
-  return data;
-}
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const searchCache = new Map<string, { data: SearchResponse; timestamp: number }>();
 
-export async function searchMovies(query: string, page: number = 1) {
+export async function searchMovies(query: string, page: number = 1): Promise<SearchResponse> {
+  if (!query?.trim()) {
+    throw new Error('Search query is required');
+  }
+
+  const cacheKey = `${query}-${page}`;
+  const cached = searchCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
-    if (!query?.trim()) {
-      throw new Error('Search query is required');
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/search?query=${encodeURIComponent(query.trim())}&page=${page}`
-    );
-
-    return handleResponse(response);
+    const data = await tmdbApi.searchMulti(query.trim(), String(page));
+    searchCache.set(cacheKey, { data, timestamp: Date.now() });
+    return data;
   } catch (error) {
-    console.error('Search error:', error);
     throw error instanceof Error ? error : new Error('Failed to search movies');
   }
 }
 
-interface MovieCastParams {
-  title: string;
-  year?: string;
-  id: number;
-  mediaType: 'movie' | 'tv';
-}
-
-export async function fetchMovieCast({ title, year, id, mediaType }: MovieCastParams) {
+export async function fetchMovieCast({ id, mediaType, year }: MovieCastParams): Promise<ActorInfo[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/movie-cast`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        movieName: title,
-        year,
-        id,
-        mediaType
-      }),
-    });
+    // Get credits based on media type
+    const credits = mediaType === 'movie'
+      ? await tmdbApi.getMovieCredits(id)
+      : await tmdbApi.getTVCredits(id);
 
-    return handleResponse(response);
+    // Get details for each cast member
+    const castDetails = await Promise.all(
+      credits.cast.map(async (actor) => {
+        try {
+          const personDetails = await tmdbApi.getPersonDetails(actor.id);
+          return {
+            name: actor.name,
+            birthYear: personDetails?.birthday ? parseInt(personDetails.birthday.split('-')[0]) : null,
+            movieYear: parseInt(year) || null,
+            role: actor.character,
+            imageUrl: tmdbApi.getImageUrl(actor.profile_path),
+            popularity: personDetails.popularity,
+            gender: personDetails.gender,
+            known_for_department: personDetails.known_for_department,
+            profile_path: actor.profile_path,
+          };
+        } catch (error) {
+          console.error(`Error processing cast member ${actor.name}:`, error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out null values and sort by popularity
+    const validCastDetails = castDetails.filter(Boolean) as ActorInfo[];
+    return validCastDetails.sort((a, b) => b.popularity - a.popularity);
   } catch (error) {
-    console.error('Cast fetch error:', error);
     throw error instanceof Error ? error : new Error('Failed to fetch cast information');
   }
 }
