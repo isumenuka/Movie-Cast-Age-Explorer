@@ -5,8 +5,8 @@ export type Gender = 1 | 2; // 1 for female, 2 for male
 export interface ActorInfo {
   name: string;
   imageUrl: string;
-  birthYear: number;
-  movieYear: number;
+  birthYear: number | null;
+  movieYear: number | null;
   role: string;
   popularity: number;
   gender: Gender;
@@ -46,4 +46,31 @@ export interface SearchResponse {
 
 export interface ApiError {
   error: string;
+}
+
+export interface MovieCastParams {
+  id: number;
+  mediaType: MediaType;
+  year?: string;
+}
+
+export interface CastMember {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+}
+
+export interface MovieCreditsResponse {
+  cast: CastMember[];
+}
+
+export interface PersonDetailsResponse {
+  id: number;
+  name: string;
+  birthday: string | null;
+  popularity: number;
+  gender: Gender;
+  known_for_department: string;
+  profile_path: string | null;
 }
